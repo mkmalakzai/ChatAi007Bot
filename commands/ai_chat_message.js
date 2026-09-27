@@ -27,6 +27,19 @@ if (prompt === "/start") {
 var aiName = Bot.getProperty("t7_ai_name") || "AI Assistant";
 var customPrompt = Bot.getProperty("t7_system_prompt") || "";
 var model = Bot.getProperty("t7_ai_model") || "nvidia/nemotron-3-ultra-550b-a55b:free";
+var fallbackModels = Bot.getProperty("t7_fallback_models", [
+  "nvidia/nemotron-3.5-lightning:free",
+  "thinking-machines/inkling:free",
+  "openrouter/free"
+]);
+if (!Array.isArray(fallbackModels)) fallbackModels = ["openrouter/free"];
+
+var routeModels = [model];
+for (var fm = 0; fm < fallbackModels.length; fm++) {
+  if (fallbackModels[fm] && routeModels.indexOf(fallbackModels[fm]) === -1) {
+    routeModels.push(fallbackModels[fm]);
+  }
+}
 var history = User.getProperty("t7_chat_history", []);
 
 if (!Array.isArray(history)) history = [];
@@ -61,10 +74,8 @@ HTTP.post({
   },
   body:{
     model:model,
-    models:[
-      model,
-      "openrouter/free"
-    ],
+    models:routeModels,
+    provider:{allow_fallbacks:true},
     messages:messages
   },
   success:"ai_chat_result",
