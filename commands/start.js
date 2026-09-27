@@ -20,7 +20,8 @@ var count = history && history.length ? Math.floor(history.length / 2) : 0;
 Bot.sendInlineKeyboard(
   [
     [{title:"💬 AI Chat",command:"ai_chat"},{title:"🆕 New Chat",command:"new_chat"}],
-    [{title:"📜 Chat History",command:"chat_history"}]
+    [{title:"📜 Chat History",command:"chat_history"},{title:"💰 Credits",command:"credits"}],
+    [{title:"📊 Usage",command:"usage"}]
   ],
   "🤖 *" + aiName.toUpperCase() + "*\n━━━━━━━━━━━━━━\n\n" +
   "Your personal AI assistant.\n\n" +
