@@ -7,6 +7,8 @@
 CMD*/
 
 User.setProperty("t7_pending_prompt","","string");
+User.setProperty("t7_pending_charge_type","","string");
+User.setProperty("t7_pending_charge_amount",0,"integer");
 
 var failures=parseInt(User.getProperty("t7_ai_failures")||0);
 User.setProperty("t7_ai_failures",failures+1,"integer");
