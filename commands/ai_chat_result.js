@@ -42,6 +42,25 @@ if (history.length > 12) history = history.slice(history.length - 12);
 User.setProperty("t7_chat_history", history, "json");
 User.setProperty("t7_pending_prompt", "", "string");
 
+var chargeType = User.getProperty("t7_pending_charge_type") || "";
+var chargeAmount = parseInt(User.getProperty("t7_pending_charge_amount") || 0);
+
+if (chargeType === "free") {
+  var freeUsed = parseInt(User.getProperty("t7_free_used") || 0);
+  User.setProperty("t7_free_used", freeUsed + 1, "integer");
+} else if (chargeType === "credit" && chargeAmount > 0) {
+  var credits = parseInt(User.getProperty("t7_credits") || 0);
+  var newCredits = credits - chargeAmount;
+  if (newCredits < 0) newCredits = 0;
+  User.setProperty("t7_credits", newCredits, "integer");
+
+  var spent = parseInt(User.getProperty("t7_total_credits_spent") || 0);
+  User.setProperty("t7_total_credits_spent", spent + chargeAmount, "integer");
+}
+
+User.setProperty("t7_pending_charge_type", "", "string");
+User.setProperty("t7_pending_charge_amount", 0, "integer");
+
 var usedModel = String(data.model || "unknown");
 User.setProperty("t7_last_used_model", usedModel, "string");
 var successCount = parseInt(User.getProperty("t7_ai_successes") || 0);
