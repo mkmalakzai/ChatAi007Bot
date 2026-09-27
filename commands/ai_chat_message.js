@@ -27,6 +27,45 @@ if (prompt === "/start") {
   return;
 }
 
+var freeLimit = parseInt(Bot.getProperty("t7_daily_free_limit") || 5);
+var creditPrice = parseInt(Bot.getProperty("t7_message_credit_price") || 1);
+if (freeLimit < 0) freeLimit = 0;
+if (creditPrice < 1) creditPrice = 1;
+
+var now = new Date().getTime();
+var windowStart = parseInt(User.getProperty("t7_free_window_start") || 0);
+var freeUsed = parseInt(User.getProperty("t7_free_used") || 0);
+
+if (!windowStart || (now - windowStart) >= 86400000) {
+  windowStart = now;
+  freeUsed = 0;
+  User.setProperty("t7_free_window_start", windowStart, "integer");
+  User.setProperty("t7_free_used", 0, "integer");
+}
+
+var credits = parseInt(User.getProperty("t7_credits") || 0);
+var useFree = freeUsed < freeLimit;
+
+if (!useFree && credits < creditPrice) {
+  Bot.sendInlineKeyboard(
+    [
+      [{title:"💰 My Credits",command:"credits"}],
+      [{title:"🏠 Main Menu",command:"/start"}]
+    ],
+    "💳 *INSUFFICIENT CREDITS*\n━━━━━━━━━━━━━━\n\n" +
+    "Daily free messages used: *" + freeUsed + "/" + freeLimit + "*\n" +
+    "Credits: *" + credits + "*\n" +
+    "Message cost: *" + creditPrice + " credit(s)*"
+  );
+  return;
+}
+
+User.setProperty("t7_pending_charge_type", useFree ? "free" : "credit", "string");
+User.setProperty("t7_pending_charge_amount", useFree ? 0 : creditPrice, "integer");
+
+var totalRequests = parseInt(User.getProperty("t7_total_requests") || 0);
+User.setProperty("t7_total_requests", totalRequests + 1, "integer");
+
 var aiName = Bot.getProperty("t7_ai_name") || "AI Assistant";
 var customPrompt = Bot.getProperty("t7_system_prompt") || "";
 var history = User.getProperty("t7_chat_history", []);
