@@ -37,7 +37,7 @@ if (!Array.isArray(history)) history = [];
 
 if (prompt) history.push({role:"user",content:String(prompt)});
 history.push({role:"assistant",content:reply});
-if (history.length > 12) history = history.slice(history.length - 12);
+if (history.length > 20) history = history.slice(history.length - 20);
 
 User.setProperty("t7_chat_history", history, "json");
 User.setProperty("t7_pending_prompt", "", "string");
