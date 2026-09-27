@@ -12,8 +12,20 @@ var freeUsed=parseInt(User.getProperty("t7_free_used")||0);
 var windowStart=parseInt(User.getProperty("t7_free_window_start")||0);
 var now=new Date().getTime();
 
-if (!windowStart || (now-windowStart)>=86400000) {
+// One-time migration from pre-monetization test counters.
+if (User.getProperty("t7_quota_migrated_v1") !== "yes") {
+  windowStart=now;
   freeUsed=0;
+  User.setProperty("t7_free_window_start",windowStart,"integer");
+  User.setProperty("t7_free_used",0,"integer");
+  User.setProperty("t7_quota_migrated_v1","yes","string");
+}
+
+if (!windowStart || (now-windowStart)>=86400000) {
+  windowStart=now;
+  freeUsed=0;
+  User.setProperty("t7_free_window_start",windowStart,"integer");
+  User.setProperty("t7_free_used",0,"integer");
 }
 
 var freeLeft=Math.max(0,freeLimit-freeUsed);
