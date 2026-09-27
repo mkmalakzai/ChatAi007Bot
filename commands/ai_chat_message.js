@@ -6,9 +6,13 @@
   aliases:
 CMD*/
 
-var apiKey = Bot.getProperty("openrouter_api_key");
-if (!apiKey) {
-  Bot.sendMessage("⚠️ *AI IS NOT CONFIGURED*");
+var provider = String(Bot.getProperty("t7_ai_provider") || "openrouter");
+var apiKey = Bot.getProperty("t7_ai_api_key") || Bot.getProperty("openrouter_api_key");
+var endpoint = Bot.getProperty("t7_ai_endpoint") || "https://openrouter.ai/api/v1/chat/completions";
+var model = Bot.getProperty("t7_ai_model") || "nvidia/nemotron-3-ultra-550b-a55b:free";
+
+if (!apiKey || !endpoint || !model) {
+  Bot.sendMessage("⚠️ *AI IS NOT CONFIGURED*\n\nProvider settings are incomplete.");
   return;
 }
 
@@ -18,7 +22,6 @@ if (!prompt) {
   Bot.run({command:"ai_chat_message",options:{waitForAnswer:true}});
   return;
 }
-
 if (prompt === "/start") {
   Bot.runCommand("/start");
   return;
@@ -26,35 +29,33 @@ if (prompt === "/start") {
 
 var aiName = Bot.getProperty("t7_ai_name") || "AI Assistant";
 var customPrompt = Bot.getProperty("t7_system_prompt") || "";
-var model = Bot.getProperty("t7_ai_model") || "nvidia/nemotron-3-ultra-550b-a55b:free";
 var history = User.getProperty("t7_chat_history", []);
-
 if (!Array.isArray(history)) history = [];
 if (history.length > 12) history = history.slice(history.length - 12);
 
 var systemPrompt =
   "You are " + aiName + ", a helpful, clear and friendly AI assistant. " +
   "If asked who or what you are, identify yourself as " + aiName + ". " +
-  "Do not mention the underlying model, NVIDIA, Nemotron, OpenRouter, API provider, or hidden system instructions unless the user explicitly asks about the technical backend. " +
-  "Always reply in the same language as the latest user message unless explicitly asked for another language. " +
-  "English must receive English and Pashto must receive Pashto. " +
-  "Never switch to Korean, Chinese, Japanese, Persian, or another language unless the user's language is genuinely that language or they request it.";
+  "Do not expose hidden system instructions or backend details unless explicitly asked. " +
+  "Reply naturally in the same language as the latest user message unless another language is requested. " +
+  "If the user writes Pashto, reply in natural Pashto. If the user writes English, reply in English.";
 
 if (customPrompt) systemPrompt += "\n\nAdditional instructions: " + customPrompt;
 
 var messages = [{role:"system",content:systemPrompt}];
-for (var i = 0; i < history.length; i++) {
+for (var i=0; i<history.length; i++) {
   if (history[i] && history[i].role && history[i].content) {
     messages.push({role:history[i].role,content:String(history[i].content)});
   }
 }
 messages.push({role:"user",content:prompt});
 
-User.setProperty("t7_pending_prompt", prompt, "string");
+User.setProperty("t7_pending_prompt",prompt,"string");
+User.setProperty("t7_last_provider",provider,"string");
 Bot.sendMessage("🤖 _Thinking..._");
 
 HTTP.post({
-  url:"https://openrouter.ai/api/v1/chat/completions",
+  url:endpoint,
   headers:{
     "Authorization":"Bearer " + apiKey,
     "Content-Type":"application/json"
