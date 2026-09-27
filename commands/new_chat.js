@@ -6,8 +6,9 @@
   aliases:
 CMD*/
 
-User.setProperty("t7_last_prompt", "", "string");
+User.setProperty("t7_chat_history", [], "json");
+User.setProperty("t7_pending_prompt", "", "string");
 
-Bot.sendMessage("🆕 *NEW CHAT STARTED*\n\nPrevious chat context has been cleared.");
+Bot.sendMessage("🆕 *NEW CHAT STARTED*\n\nConversation memory has been cleared.");
 
 Bot.runCommand("ai_chat");
