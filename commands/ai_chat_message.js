@@ -70,7 +70,10 @@ var aiName = Bot.getProperty("t7_ai_name") || "AI Assistant";
 var customPrompt = Bot.getProperty("t7_system_prompt") || "";
 var history = User.getProperty("t7_chat_history", []);
 if (!Array.isArray(history)) history = [];
-if (history.length > 12) history = history.slice(history.length - 12);
+
+// Keep full local history for the History page, but send only the latest
+// exchange to the AI provider to reduce free-provider timeout risk.
+var apiHistory = history.length > 2 ? history.slice(history.length - 2) : history;
 
 var systemPrompt =
   "You are " + aiName + ", a helpful, clear and friendly AI assistant. " +
@@ -82,9 +85,11 @@ var systemPrompt =
 if (customPrompt) systemPrompt += "\n\nAdditional instructions: " + customPrompt;
 
 var messages = [{role:"system",content:systemPrompt}];
-for (var i=0; i<history.length; i++) {
-  if (history[i] && history[i].role && history[i].content) {
-    messages.push({role:history[i].role,content:String(history[i].content)});
+for (var i=0; i<apiHistory.length; i++) {
+  if (apiHistory[i] && apiHistory[i].role && apiHistory[i].content) {
+    var oldText = String(apiHistory[i].content);
+    if (oldText.length > 700) oldText = oldText.substring(0,700);
+    messages.push({role:apiHistory[i].role,content:oldText});
   }
 }
 messages.push({role:"user",content:prompt});
@@ -101,6 +106,7 @@ HTTP.post({
   },
   body:{
     model:model,
+    max_tokens:350,
     messages:messages
   },
   success:"ai_chat_result",
