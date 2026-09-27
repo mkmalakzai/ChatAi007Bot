@@ -6,19 +6,20 @@
   aliases:
 CMD*/
 
-var pending = User.getProperty("t7_pending_prompt") || "";
-User.setProperty("t7_pending_prompt", "", "string");
+User.setProperty("t7_pending_prompt","","string");
 
-var failures = parseInt(User.getProperty("t7_ai_failures") || 0);
-failures++;
-User.setProperty("t7_ai_failures", failures, "integer");
+var failures=parseInt(User.getProperty("t7_ai_failures")||0);
+User.setProperty("t7_ai_failures",failures+1,"integer");
+
+var provider=String(Bot.getProperty("t7_ai_provider")||"openrouter");
 
 Bot.sendInlineKeyboard(
   [
     [{title:"🔄 Try Again",command:"ai_chat"}],
     [{title:"🏠 Main Menu",command:"/start"}]
   ],
-  "❌ *AI TEMPORARILY UNAVAILABLE*\n━━━━━━━━━━━━━━\n\n" +
-  "The free AI providers could not complete this request.\n" +
-  "Your conversation memory is safe. Please try again."
+  "❌ *AI REQUEST FAILED*\n━━━━━━━━━━━━━━\n\n" +
+  "Provider: *" + provider + "*\n" +
+  "Your conversation memory is safe.\n\n" +
+  "Please try again."
 );
