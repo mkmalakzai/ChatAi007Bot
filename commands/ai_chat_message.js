@@ -32,11 +32,11 @@ HTTP.post({
     "Content-Type": "application/json"
   },
   body: {
-    model: "openrouter/free",
+    model: "nvidia/nemotron-3-ultra-550b-a55b:free",
     messages: [
       {
         role: "system",
-        content: "You are a helpful, clear and friendly AI assistant. Answer in the same language as the user unless they ask otherwise."
+        content: "You are a helpful, clear and friendly AI assistant. Always reply in the same language as the latest user message unless explicitly asked for another language. English must receive English. Pashto must receive Pashto. Never switch to Korean, Chinese, Japanese, or another language unless requested."
       },
       {
         role: "user",
