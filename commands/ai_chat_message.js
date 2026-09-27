@@ -61,6 +61,10 @@ HTTP.post({
   },
   body:{
     model:model,
+    models:[
+      model,
+      "openrouter/free"
+    ],
     messages:messages
   },
   success:"ai_chat_result",
