@@ -7,7 +7,6 @@
 CMD*/
 
 var data;
-
 try {
   data = JSON.parse(content);
 } catch (e) {
@@ -22,11 +21,28 @@ if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
   return;
 }
 
-var reply = data.choices[0].message.content || "No response.";
+var reply = String(data.choices[0].message.content || "No response.");
+var prompt = User.getProperty("t7_pending_prompt") || "";
+var history = User.getProperty("t7_chat_history", []);
+if (!Array.isArray(history)) history = [];
 
-Bot.sendMessage("🤖 *AI*\n━━━━━━━━━━━━━━\n\n" + reply);
+if (prompt) history.push({role:"user",content:String(prompt)});
+history.push({role:"assistant",content:reply});
+if (history.length > 12) history = history.slice(history.length - 12);
 
-Bot.run({
-  command: "ai_chat_message",
-  options: { waitForAnswer: true }
-});
+User.setProperty("t7_chat_history", history, "json");
+User.setProperty("t7_pending_prompt", "", "string");
+
+var aiName = Bot.getProperty("t7_ai_name") || "AI Assistant";
+var max = 3500;
+
+if (reply.length <= max) {
+  Bot.sendMessage("🤖 *" + aiName + "*\n━━━━━━━━━━━━━━\n\n" + reply);
+} else {
+  Bot.sendMessage("🤖 *" + aiName + "*\n━━━━━━━━━━━━━━");
+  for (var i = 0; i < reply.length; i += max) {
+    Bot.sendMessage(reply.substring(i, i + max));
+  }
+}
+
+Bot.run({command:"ai_chat_message",options:{waitForAnswer:true}});
