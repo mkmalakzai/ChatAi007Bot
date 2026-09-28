@@ -9,7 +9,7 @@ CMD*/
 var provider = String(Bot.getProperty("t7_ai_provider") || "groq");
 var apiKey = Bot.getProperty("t7_ai_api_key") || Bot.getProperty("groq_api_key");
 var endpoint = Bot.getProperty("t7_ai_endpoint") || "https://api.groq.com/openai/v1/chat/completions";
-var model = Bot.getProperty("t7_ai_model") || "llama-3.1-8b-instant";
+var model = Bot.getProperty("t7_ai_model") || "openai/gpt-oss-120b";
 
 if (!apiKey || !endpoint || !model) {
   Bot.sendMessage("⚠️ *AI IS NOT CONFIGURED*\n\nProvider settings are incomplete.");
@@ -110,7 +110,7 @@ HTTP.post({
   },
   body:{
     model:model,
-    max_completion_tokens:800,
+    max_completion_tokens:650,
     messages:messages
   },
   success:"ai_chat_result",
