@@ -21,84 +21,22 @@ if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
   return;
 }
 
-var reply = String(data.choices[0].message.content || "No response.");
-
-// Clean stray control/private-use/surrogate characters while preserving normal Unicode languages.
-reply = reply
-  .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
-  .replace(/[\uD800-\uDFFF]/g, "")
-  .replace(/[\uE000-\uF8FF]/g, "")
+var reply=String(data.choices[0].message.content||"")
+  .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g,"")
+  .replace(/[\uD800-\uDFFF]/g,"")
+  .replace(/[\uE000-\uF8FF]/g,"")
   .trim();
 
-if (!reply) reply = "No response.";
-var prompt = User.getProperty("t7_pending_prompt") || "";
-var history = User.getProperty("t7_chat_history", []);
-if (!Array.isArray(history)) history = [];
+if(!reply) reply="No response.";
+User.setProperty("t7_long_answer",reply,"string");
 
-if (prompt) history.push({role:"user",content:String(prompt)});
-history.push({role:"assistant",content:reply});
+var usedModel=String(data.model||"unknown");
+User.setProperty("t7_last_used_model",usedModel,"string");
 
-// Lightweight persistent memory: keep explicit identity/preferences the user asks
-// the assistant to remember, without sending the full transcript every time.
-if (prompt) {
-  var low=String(prompt).toLowerCase();
-  var remember =
-    low.indexOf("remember")>=0 ||
-    low.indexOf("my name is")>=0 ||
-    low.indexOf("i like")>=0 ||
-    low.indexOf("i love")>=0 ||
-    low.indexOf("زما نوم")>=0 ||
-    low.indexOf("یاد")>=0;
-
-  if (remember) {
-    var memory=User.getProperty("t7_memory_facts",[]);
-    if (!Array.isArray(memory)) memory=[];
-    var fact=String(prompt).trim();
-    if (fact.length>300) fact=fact.substring(0,300);
-    if (memory.indexOf(fact)===-1) memory.push(fact);
-    if (memory.length>8) memory=memory.slice(memory.length-8);
-    User.setProperty("t7_memory_facts",memory,"json");
-  }
+var reason=String(data.choices[0].finish_reason||"");
+if(reason==="length"){
+  User.setProperty("t7_continue_count",0,"integer");
+  Bot.runCommand("ai_chat_continue");
+}else{
+  Bot.runCommand("ai_chat_finalize");
 }
-if (history.length > 20) history = history.slice(history.length - 20);
-
-User.setProperty("t7_chat_history", history, "json");
-User.setProperty("t7_pending_prompt", "", "string");
-
-var chargeType = User.getProperty("t7_pending_charge_type") || "";
-var chargeAmount = parseInt(User.getProperty("t7_pending_charge_amount") || 0);
-
-if (chargeType === "free") {
-  var freeUsed = parseInt(User.getProperty("t7_free_used") || 0);
-  User.setProperty("t7_free_used", freeUsed + 1, "integer");
-} else if (chargeType === "credit" && chargeAmount > 0) {
-  var credits = parseInt(User.getProperty("t7_credits") || 0);
-  var newCredits = credits - chargeAmount;
-  if (newCredits < 0) newCredits = 0;
-  User.setProperty("t7_credits", newCredits, "integer");
-
-  var spent = parseInt(User.getProperty("t7_total_credits_spent") || 0);
-  User.setProperty("t7_total_credits_spent", spent + chargeAmount, "integer");
-}
-
-User.setProperty("t7_pending_charge_type", "", "string");
-User.setProperty("t7_pending_charge_amount", 0, "integer");
-
-var usedModel = String(data.model || "unknown");
-User.setProperty("t7_last_used_model", usedModel, "string");
-var successCount = parseInt(User.getProperty("t7_ai_successes") || 0);
-User.setProperty("t7_ai_successes", successCount + 1, "integer");
-
-var aiName = Bot.getProperty("t7_ai_name") || "AI Assistant";
-var max = 3500;
-
-if (reply.length <= max) {
-  Bot.sendMessage("🤖 *" + aiName + "*\n━━━━━━━━━━━━━━\n\n" + reply);
-} else {
-  Bot.sendMessage("🤖 *" + aiName + "*\n━━━━━━━━━━━━━━");
-  for (var i = 0; i < reply.length; i += max) {
-    Bot.sendMessage(reply.substring(i, i + max));
-  }
-}
-
-Bot.run({command:"ai_chat_message",options:{waitForAnswer:true}});
