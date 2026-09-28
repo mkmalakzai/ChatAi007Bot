@@ -8,7 +8,7 @@ CMD*/
 
 var provider=String(Bot.getProperty("t7_ai_provider")||"groq");
 var endpoint=Bot.getProperty("t7_ai_endpoint")||"https://api.groq.com/openai/v1/chat/completions";
-var model=Bot.getProperty("t7_ai_model")||"openai/gpt-oss-120b";
+var model=Bot.getProperty("t7_ai_model")||"llama-3.1-8b-instant";
 var hasKey=!!(Bot.getProperty("t7_ai_api_key")||Bot.getProperty("groq_api_key"));
 var used=User.getProperty("t7_last_used_model")||"No successful request yet";
 var ok=parseInt(User.getProperty("t7_ai_successes")||0);
