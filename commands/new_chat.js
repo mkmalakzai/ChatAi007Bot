@@ -8,6 +8,7 @@ CMD*/
 
 User.setProperty("t7_chat_history", [], "json");
 User.setProperty("t7_pending_prompt", "", "string");
+// New Chat clears conversation context but intentionally keeps saved memory facts.
 
 Bot.sendMessage("🆕 *NEW CHAT STARTED*\n\nConversation memory has been cleared.");
 
