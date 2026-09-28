@@ -37,6 +37,29 @@ if (!Array.isArray(history)) history = [];
 
 if (prompt) history.push({role:"user",content:String(prompt)});
 history.push({role:"assistant",content:reply});
+
+// Lightweight persistent memory: keep explicit identity/preferences the user asks
+// the assistant to remember, without sending the full transcript every time.
+if (prompt) {
+  var low=String(prompt).toLowerCase();
+  var remember =
+    low.indexOf("remember")>=0 ||
+    low.indexOf("my name is")>=0 ||
+    low.indexOf("i like")>=0 ||
+    low.indexOf("i love")>=0 ||
+    low.indexOf("زما نوم")>=0 ||
+    low.indexOf("یاد")>=0;
+
+  if (remember) {
+    var memory=User.getProperty("t7_memory_facts",[]);
+    if (!Array.isArray(memory)) memory=[];
+    var fact=String(prompt).trim();
+    if (fact.length>300) fact=fact.substring(0,300);
+    if (memory.indexOf(fact)===-1) memory.push(fact);
+    if (memory.length>8) memory=memory.slice(memory.length-8);
+    User.setProperty("t7_memory_facts",memory,"json");
+  }
+}
 if (history.length > 20) history = history.slice(history.length - 20);
 
 User.setProperty("t7_chat_history", history, "json");
