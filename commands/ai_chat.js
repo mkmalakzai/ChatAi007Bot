@@ -6,8 +6,10 @@
   aliases:
 CMD*/
 
-if (!Bot.getProperty("openrouter_api_key")) {
-  Bot.sendMessage("⚠️ *AI IS NOT CONFIGURED*\n\nOpenRouter API key is missing.");
+var provider=String(Bot.getProperty("t7_ai_provider")||"groq");
+var apiKey=Bot.getProperty("t7_ai_api_key")||Bot.getProperty("groq_api_key");
+if(!apiKey){
+  Bot.sendMessage("⚠️ *AI IS NOT CONFIGURED*\n\nAI API key is missing.");
   return;
 }
 
