@@ -9,7 +9,7 @@ CMD*/
 var provider = String(Bot.getProperty("t7_ai_provider") || "groq");
 var apiKey = Bot.getProperty("t7_ai_api_key") || Bot.getProperty("groq_api_key");
 var endpoint = Bot.getProperty("t7_ai_endpoint") || "https://api.groq.com/openai/v1/chat/completions";
-var model = Bot.getProperty("t7_ai_model") || "openai/gpt-oss-120b";
+var model = Bot.getProperty("t7_ai_model") || "llama-3.1-8b-instant";
 
 if (!apiKey || !endpoint || !model) {
   Bot.sendMessage("⚠️ *AI IS NOT CONFIGURED*\n\nProvider settings are incomplete.");
@@ -71,9 +71,10 @@ var customPrompt = Bot.getProperty("t7_system_prompt") || "";
 var history = User.getProperty("t7_chat_history", []);
 if (!Array.isArray(history)) history = [];
 
-// Keep full local history for the History page, but send only the latest
-// exchange to the AI provider to reduce free-provider timeout risk.
-var apiHistory = history.length > 2 ? history.slice(history.length - 2) : history;
+// Full history stays local. Provider receives compact memory + recent context.
+var apiHistory = history.length > 4 ? history.slice(history.length - 4) : history;
+var memory = User.getProperty("t7_memory_facts", []);
+if (!Array.isArray(memory)) memory = [];
 
 var systemPrompt =
   "You are " + aiName + ", a helpful, clear and friendly AI assistant. " +
@@ -82,13 +83,16 @@ var systemPrompt =
   "Reply naturally in the same language as the latest user message unless another language is requested. " +
   "If the user writes Pashto, reply in natural Pashto. If the user writes English, reply in English.";
 
+if (memory.length) {
+  systemPrompt += "\n\nConversation memory facts:\n- " + memory.join("\n- ");
+}
 if (customPrompt) systemPrompt += "\n\nAdditional instructions: " + customPrompt;
 
 var messages = [{role:"system",content:systemPrompt}];
 for (var i=0; i<apiHistory.length; i++) {
   if (apiHistory[i] && apiHistory[i].role && apiHistory[i].content) {
     var oldText = String(apiHistory[i].content);
-    if (oldText.length > 700) oldText = oldText.substring(0,700);
+    if (oldText.length > 500) oldText = oldText.substring(0,500);
     messages.push({role:apiHistory[i].role,content:oldText});
   }
 }
@@ -106,7 +110,7 @@ HTTP.post({
   },
   body:{
     model:model,
-    max_completion_tokens:1500,
+    max_completion_tokens:800,
     messages:messages
   },
   success:"ai_chat_result",
