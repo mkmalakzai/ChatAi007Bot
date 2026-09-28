@@ -99,6 +99,8 @@ for (var i=0; i<apiHistory.length; i++) {
 messages.push({role:"user",content:prompt});
 
 User.setProperty("t7_pending_prompt",prompt,"string");
+User.setProperty("t7_long_answer","", "string");
+User.setProperty("t7_continue_count",0,"integer");
 User.setProperty("t7_last_provider",provider,"string");
 Bot.sendMessage("🤖 _Thinking..._");
 
