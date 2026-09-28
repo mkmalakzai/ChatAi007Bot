@@ -6,10 +6,10 @@
   aliases:
 CMD*/
 
-var provider = String(Bot.getProperty("t7_ai_provider") || "openrouter");
-var apiKey = Bot.getProperty("t7_ai_api_key") || Bot.getProperty("openrouter_api_key");
-var endpoint = Bot.getProperty("t7_ai_endpoint") || "https://openrouter.ai/api/v1/chat/completions";
-var model = Bot.getProperty("t7_ai_model") || "nvidia/nemotron-3-ultra-550b-a55b:free";
+var provider = String(Bot.getProperty("t7_ai_provider") || "groq");
+var apiKey = Bot.getProperty("t7_ai_api_key") || Bot.getProperty("groq_api_key");
+var endpoint = Bot.getProperty("t7_ai_endpoint") || "https://api.groq.com/openai/v1/chat/completions";
+var model = Bot.getProperty("t7_ai_model") || "openai/gpt-oss-120b";
 
 if (!apiKey || !endpoint || !model) {
   Bot.sendMessage("⚠️ *AI IS NOT CONFIGURED*\n\nProvider settings are incomplete.");
@@ -106,7 +106,7 @@ HTTP.post({
   },
   body:{
     model:model,
-    max_tokens:350,
+    max_completion_tokens:1500,
     messages:messages
   },
   success:"ai_chat_result",
